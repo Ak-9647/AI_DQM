@@ -1,0 +1,21 @@
+customer_id,name,email,age,purchase_amount,registration_date,city,country
+1,John Smith,john.smith@email.com,25,150.50,2023-01-15,New York,USA
+2,Jane Doe,jane.doe@email.com,32,299.99,2023-01-16,Los Angeles,USA
+3,Bob Johnson,,45,75.25,2023-01-17,Chicago,USA
+4,Alice Brown,alice.brown@email.com,28,500.00,2023-01-18,Houston,USA
+5,Charlie Wilson,charlie.wilson@email.com,-5,200.00,2023-01-19,Phoenix,USA
+6,David Lee,david.lee@email.com,35,999999.99,2023-01-20,Philadelphia,USA
+7,Eva Garcia,eva.garcia@email.com,29,125.75,2023-01-21,San Antonio,USA
+8,Frank Miller,frank.miller@email.com,42,0.01,2023-01-22,San Diego,USA
+9,Grace Chen,grace.chen@email.com,31,350.00,,Boston,USA
+10,Henry Taylor,henry.taylor@email.com,150,180.50,2023-01-24,Seattle,USA
+11,John Smith,john.smith@email.com,25,150.50,2023-01-15,New York,USA
+12,Isabel Rodriguez,isabel@invalid-email,27,275.25,2023-01-26,Miami,USA
+13,Jack Thompson,jack.thompson@email.com,33,NULL,2023-01-27,Denver,USA
+14,Kate Williams,kate.williams@email.com,24,425.00,2023-01-28,,USA
+15,Leo Martinez,leo.martinez@email.com,38,0,2023-01-29,Portland,USA
+16,Mia Anderson,mia.anderson@email.com,22,875.50,2023-01-30,Las Vegas,USA
+17,Noah Davis,noah.davis@email.com,44,125.00,2023-01-31,Nashville,USA
+18,,olivia.wilson@email.com,30,225.75,2023-02-01,Atlanta,USA
+19,Paul Johnson,paul.johnson@email.com,36,99999.99,2023-02-02,Detroit,USA
+20,Quinn Brown,quinn.brown@email.com,26,175.25,2023-02-03,Minneapolis,USA 

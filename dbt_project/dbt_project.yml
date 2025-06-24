@@ -1,0 +1,46 @@
+name: 'data_quality_monitor'
+version: '1.0.0'
+config-version: 2
+
+# This setting configures which "profile" dbt uses for this project.
+profile: 'data_quality_monitor'
+
+# These configurations specify where dbt should look for different types of files.
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# Model configurations
+models:
+  data_quality_monitor:
+    # Configurations for models in the staging layer
+    staging:
+      +materialized: view
+      +schema: staging
+    
+    # Configurations for models in the marts layer
+    marts:
+      +materialized: table
+      +schema: marts
+      
+    # Data quality models
+    data_quality:
+      +materialized: table
+      +schema: data_quality
+
+vars:
+  # dbt-utils variables
+  "dbt_utils:dispatch_list": ["dbt_utils"]
+  
+  # Data quality thresholds
+  completeness_threshold: 0.95
+  uniqueness_threshold: 0.99
+  validity_threshold: 0.90 
