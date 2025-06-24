@@ -25,8 +25,8 @@ def main():
     """Test the complete data quality monitoring system with real-world data."""
     
     print("=" * 80)
-    print("🚗 AI-POWERED DATA QUALITY MONITOR - REAL WORLD TEST")
-    print("Testing with Washington State Electric Vehicle Population Data")
+    print("🛒 AI-POWERED DATA QUALITY MONITOR - REAL WORLD TEST")
+    print("Testing with Sales Transaction Data")
     print("=" * 80)
     
     try:
@@ -34,12 +34,12 @@ def main():
         logger.info("Initializing Data Quality Pipeline...")
         pipeline = DataQualityPipeline()
         
-        # Process the real-world electric vehicle dataset
-        csv_path = "data/raw/electric_vehicles_wa.csv"
+        # Process the real-world sales dataset
+        csv_path = "data/raw/10000 Sales Records.csv"
         
         if not os.path.exists(csv_path):
             logger.error(f"Dataset not found: {csv_path}")
-            logger.info("Please ensure the electric vehicle dataset is downloaded to data/raw/")
+            logger.info("Please ensure the sales dataset is downloaded to data/raw/")
             return
         
         # Get basic info about the dataset
@@ -50,12 +50,12 @@ def main():
         print(f"   • File size: {os.path.getsize(csv_path) / (1024*1024):.1f} MB")
         print(f"   • Columns: {list(df.columns)}")
         
-        print(f"\n🔄 PROCESSING ELECTRIC VEHICLE DATA...")
+        print(f"\n🔄 PROCESSING SALES DATA...")
         
         # Run the complete pipeline
         results = pipeline.run_full_pipeline(
             csv_path=csv_path,
-            table_name="electric_vehicles_wa"
+            table_name="sales_records"
         )
         
         # Check if pipeline completed successfully

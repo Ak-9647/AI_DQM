@@ -1,25 +1,30 @@
+#!/usr/bin/env python3
 """
-Data Pipeline Orchestrator for AI-Powered Data Quality Monitor
-Coordinates dbt transformations, data profiling, and anomaly detection
+Data Quality Pipeline - Main orchestrator for the AI-Powered Data Quality Monitor
+Coordinates data ingestion, profiling, anomaly detection, and monitoring
 """
 
-import pandas as pd
-import duckdb
-import subprocess
 import os
-import yaml
+import sys
 import json
 import logging
+import subprocess
 from pathlib import Path
-from typing import Dict, List, Optional
 from datetime import datetime
+from typing import Dict, Any, Optional, List
+import pandas as pd
+import duckdb
+import yaml
 
-# Import our custom modules
-import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+# Load environment variables
+from dotenv import load_dotenv
+load_dotenv()
 
-from anomaly_detection.detector import AnomalyDetector
+# Add src to path for imports
+sys.path.append(str(Path(__file__).parent.parent))
+
 from data_profiling.profiler import DataProfiler
+from anomaly_detection.detector import AnomalyDetector
 
 class DataQualityPipeline:
     """
@@ -97,13 +102,19 @@ class DataQualityPipeline:
                 self.logger.error(f"dbt project directory not found: {dbt_dir}")
                 return False
             
+            # Close database connection to avoid lock conflicts
+            if hasattr(self, 'conn') and self.conn:
+                self.conn.close()
+                self.logger.info("Closed database connection for dbt execution")
+            
             os.chdir(dbt_dir)
             
-            # Run dbt commands
+            # Run dbt commands with full path
+            dbt_path = "/Users/akshayrameshnair/Library/Python/3.12/bin/dbt"
             commands = [
-                "dbt deps",
-                "dbt run",
-                "dbt test"
+                f"{dbt_path} deps --profiles-dir .",
+                f"{dbt_path} run --profiles-dir .",
+                f"{dbt_path} test --profiles-dir ."
             ]
             
             for cmd in commands:
@@ -112,11 +123,27 @@ class DataQualityPipeline:
                 
                 if result.returncode != 0:
                     self.logger.error(f"dbt command failed: {cmd}")
-                    self.logger.error(f"Error: {result.stderr}")
+                    self.logger.error(f"Return code: {result.returncode}")
+                    self.logger.error(f"Stderr: {result.stderr}")
+                    self.logger.error(f"Stdout: {result.stdout}")
                     os.chdir(original_dir)
+                    
+                    # Reopen database connection even on failure
+                    self.conn = duckdb.connect(self.db_path)
+                    self.logger.info("Reopened database connection after dbt command failure")
+                    
                     return False
+                else:
+                    self.logger.info(f"dbt command succeeded: {cmd}")
+                    if result.stdout:
+                        self.logger.debug(f"Output: {result.stdout}")
             
             os.chdir(original_dir)
+            
+            # Reopen database connection
+            self.conn = duckdb.connect(self.db_path)
+            self.logger.info("Reopened database connection after dbt execution")
+            
             self.logger.info("dbt pipeline completed successfully")
             return True
             
@@ -124,6 +151,12 @@ class DataQualityPipeline:
             self.logger.error(f"Error running dbt pipeline: {str(e)}")
             if 'original_dir' in locals():
                 os.chdir(original_dir)
+            
+            # Ensure database connection is reopened even on error
+            if not hasattr(self, 'conn') or not self.conn:
+                self.conn = duckdb.connect(self.db_path)
+                self.logger.info("Reopened database connection after dbt error")
+            
             return False
     
     def profile_data(self, table_name: str, dataset_name: str = None) -> Optional[Dict]:
@@ -315,19 +348,19 @@ class DataQualityPipeline:
             quality_summary = profile.get('data_quality_summary', {}) if profile else {}
             anomaly_summary = self._summarize_anomalies(anomalies) if anomalies else {}
             
-            # Insert monitoring record
+            # Insert monitoring record with type conversion
             self.conn.execute("""
                 INSERT INTO data_quality_monitoring VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, [
-                table_name,
+                str(table_name),
                 current_time,
-                quality_summary.get('overall_quality_score', 0),
-                quality_summary.get('quality_grade', 'F'),
-                quality_summary.get('completeness', 0),
-                quality_summary.get('validity', 0),
-                quality_summary.get('uniqueness', 0),
-                anomaly_summary.get('combined', {}).get('num_anomalies', 0),
-                anomaly_summary.get('combined', {}).get('anomaly_rate', 0),
+                float(quality_summary.get('overall_quality_score', 0)),
+                str(quality_summary.get('quality_grade', 'F')),
+                float(quality_summary.get('completeness', 0)),
+                float(quality_summary.get('validity', 0)),
+                float(quality_summary.get('uniqueness', 0)),
+                int(anomaly_summary.get('combined', {}).get('num_anomalies', 0)),
+                float(anomaly_summary.get('combined', {}).get('anomaly_rate', 0)),
                 json.dumps(profile, default=str) if profile else None,
                 json.dumps(anomalies, default=str) if anomalies else None
             ])
